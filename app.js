@@ -1,12 +1,4 @@
-/*
- * @Author: qingzhuyue qingzhuyue@foxmail.com
- * @Date: 2024-09-09 22:58:26
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2024-09-20 12:29:38
- * @FilePath: /hmosServer/app.js
- * @Description: 
- * Copyright (c) 2024 by ${qingzhuyue} email: ${qingzhuyue@foxmail.com}, All Rights Reserved.
- */
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -15,18 +7,18 @@ var logger = require('morgan');
 var router = express.Router();
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var loginRouter = require('./routes/login');
-const db = require("./mysql")
+var loginConfig = require('./routes/login');
+// const db = require("./mysql")
 var app = express();
 
 // 连接到数据库
-db.connect(err => {
-  if (err) {
-    return console.error('error: ' + err.message);
-  }
+// db.connect(err => {
+//   if (err) {
+//     return console.error('error: ' + err.message);
+//   }
 
-  console.log('Connected to the MySQL server.');
-});
+//   console.log('Connected to the MySQL server.');
+// });
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -37,27 +29,24 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.all('*', (req, res, next) => {
+  // 允许来自任何源的请求
+  res.header("Access-Control-Allow-Origin", "*");
+  // 允许特定的方法类型，默认为 GET 和 POST
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  // 允许请求头（可选）
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+
+  if (req.method === 'OPTIONS') {
+      // 预检请求（OPTIONS）直接返回
+      return res.sendStatus(200);
+  }
+  next();
+})
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/login', router.get('/login', function(req, res, next) {
-  try {  
-   db.query('SELECT * FROM users', (err, results, fields) => {
-     if (err) throw err;
-     // res.send(results);
-     res.json(results);
-   }); 
-   // res.json(rows);  
- } catch (err) {  
-   console.error('Database query error:', err);  
-   res.status(500).send('Database error');  
- }  
- // res.render('index', { title: 'Express' });
-}));
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+app.use("/api", loginConfig);
 
 // error handler
 app.use(function(err, req, res, next) {
