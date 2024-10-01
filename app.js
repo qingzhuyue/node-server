@@ -45,7 +45,7 @@ app.all('*', (req, res, next) => {
 })
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/api/usersList', usersRouter);
 app.use("/api", loginConfig);
 
 // error handler
